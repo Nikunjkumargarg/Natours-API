@@ -41,30 +41,10 @@ app.get('/api/v1/tours/:id?',(req,res,next)=>{
 }
 });
 
-// app.get('/api/v1/tours/:id',(req,res,next)=>{
-//     let id = req.params.id *1;
-//     let tour = tours.find(item=>item.id == id);
-//     // if(id > tours.length)
-//     if(!tour)
-//     {
-//         return res.status(404).json({
-//             status:'fail',
-//             message:'Invalid Id'
-//         })
-//     }
-//     console.log(tour);
-//     res.status(200).json({
-//         status:'success',
-//         data:{
-//             tour
-//         }
-//     })
-// })
-
 app.post('/api/v1/tours',(req,res,next)=>{
-    const newId = tour[tours.length-1].id + 1;
+    const newId = tours[tours.length-1].id + 1;
     const newTour = Object.assign({id:newId}, req.body);
-    tour.push(newTour);
+    tours.push(newTour);
     fs.writeFile(`${__dirname}/dev-data/data/tours-simple.json`,JSON.stringify(tours),err=>{
         res.status(201).json({
             status:'success',
@@ -73,6 +53,39 @@ app.post('/api/v1/tours',(req,res,next)=>{
             }
         })
     })
+})
+
+app.patch('/api/v1/tours/:id',(req,res,next)=>{
+    let id = req.params.id *1;
+        if(id > tours.length)
+        {
+            return res.status(404).json({
+                status:'fail',
+                message:'Invalid Id'
+            })
+        }
+        res.status(201).json({
+            status:'success',
+            data:{
+                tour: '<Updated tour here...>'
+            }
+        })
+})
+   
+app.delete('/api/v1/tours/:id',(req,res,next)=>{
+    let id = req.params.id *1;
+        if(id > tours.length)
+        {
+            return res.status(404).json({
+                status:'fail',
+                message:'Invalid Id'
+            })
+        }
+        //204 signifies no content
+        res.status(204).json({
+            status:'success',
+            data: null
+        })
 })
 
 app.listen(3000,()=>{
