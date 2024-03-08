@@ -6,6 +6,13 @@ const app = express();
 
 app.use(express.json());
 
+app.use(morgan('dev'));
+
+app.use((req,res,next)=>{
+    req.requestTime = new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' });
+    next();
+})
+
 const tours = JSON.parse(fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`));
 
 const getTours = (req,res,next)=>{
@@ -17,12 +24,14 @@ const getTours = (req,res,next)=>{
         if(!tour)
         {
             return res.status(404).json({
+                requestedAt:req.requestTime,
                 status:'fail',
                 message:'Invalid Id'
             })
         }
         console.log(tour);
         res.status(200).json({
+            requestedAt:req.requestTime,
             status:'success',
             data:{
                 tour
@@ -31,6 +40,7 @@ const getTours = (req,res,next)=>{
     }
     else{
         res.status(200).json({
+            requestedAt:req.requestTime,
             status: 'success',
             result:tours.length,
             data:{
@@ -46,6 +56,7 @@ const addTour = (req,res,next)=>{
     tours.push(newTour);
     fs.writeFile(`${__dirname}/dev-data/data/tours-simple.json`,JSON.stringify(tours),err=>{
         res.status(201).json({
+            requestedAt:req.requestTime,
             status:'success',
             data:{
                 tour: newTour
@@ -59,11 +70,13 @@ const updateTour = (req,res,next)=>{
         if(id > tours.length)
         {
             return res.status(404).json({
+                requestedAt:req.requestTime,
                 status:'fail',
                 message:'Invalid Id'
             })
         }
         res.status(201).json({
+            requestedAt:req.requestTime,
             status:'success',
             data:{
                 tour: '<Updated tour here...>'
@@ -76,12 +89,14 @@ const deleteTour = (req,res,next)=>{
         if(id > tours.length)
         {
             return res.status(404).json({
+                requestedAt:req.requestTime,
                 status:'fail',
                 message:'Invalid Id'
             })
         }
         //204 signifies no content
         res.status(204).json({
+            requestedAt:req.requestTime,
             status:'success',
             data: null
         })
