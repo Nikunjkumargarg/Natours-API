@@ -2,20 +2,34 @@ const fs = require('fs');
 
 const tours = JSON.parse(fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`));
 
+exports.checkID = (req,res,next,val)=>{
+    let id = req.params.id *1;
+    if(id > tours.length)
+    {
+        return res.status(404).json({
+            requestedAt:req.requestTime,
+            status:'fail',
+            message:'Invalid Id'
+        })
+    }
+    next();
+}
+
+exports.checkBody = (req,res,next)=>{
+    if(!req.body.name || !req.body.price)
+    {
+        return res.status(401).json({
+            status:'fail',
+            message:'Missing name or duration'
+        });
+    }
+    next();
+}
+
 exports.getTours = (req,res,next)=>{
     if(req.params.id)
     {
-        let id = req.params.id *1;
         let tour = tours.find(item=>item.id == id);
-        // if(id > tours.length)
-        if(!tour)
-        {
-            return res.status(404).json({
-                requestedAt:req.requestTime,
-                status:'fail',
-                message:'Invalid Id'
-            })
-        }
         console.log(tour);
         res.status(200).json({
             requestedAt:req.requestTime,
@@ -38,6 +52,7 @@ exports.getTours = (req,res,next)=>{
 };
 
 exports.addTour = (req,res,next)=>{
+    console.log(req.body);
     const newId = tours[tours.length-1].id + 1;
     const newTour = Object.assign({id:newId}, req.body);
     tours.push(newTour);
@@ -53,15 +68,6 @@ exports.addTour = (req,res,next)=>{
 };
 
 exports.updateTour = (req,res,next)=>{
-    let id = req.params.id *1;
-        if(id > tours.length)
-        {
-            return res.status(404).json({
-                requestedAt:req.requestTime,
-                status:'fail',
-                message:'Invalid Id'
-            })
-        }
         res.status(201).json({
             requestedAt:req.requestTime,
             status:'success',
@@ -72,15 +78,6 @@ exports.updateTour = (req,res,next)=>{
 };
 
 exports.deleteTour = (req,res,next)=>{
-    let id = req.params.id *1;
-        if(id > tours.length)
-        {
-            return res.status(404).json({
-                requestedAt:req.requestTime,
-                status:'fail',
-                message:'Invalid Id'
-            })
-        }
         //204 signifies no content
         res.status(204).json({
             requestedAt:req.requestTime,
