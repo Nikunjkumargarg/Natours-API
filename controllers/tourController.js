@@ -1,6 +1,9 @@
 const { Tour } = require('../models/tourModel');
 
 exports.getTours = async (req, res, next) => {
+  const queryObject = { ...req.query };
+  const excludedFields = ['page', 'sort', 'limit', 'fields'];
+  excludedFields.forEach((item) => delete queryObject[item]);
   if (req.params.id) {
     try {
       const searchQuery = `SELECT * FROM tour WHERE id = ${req.params.id * 1}`;
@@ -15,6 +18,7 @@ exports.getTours = async (req, res, next) => {
         res.status(200).json({
           requestedAt: req.requestTime,
           status: 'success',
+          results: result.rowCount,
           tour: result.rows,
         });
       }
@@ -27,12 +31,38 @@ exports.getTours = async (req, res, next) => {
     }
   } else {
     try {
-      const searchQuery = 'SELECT * FROM tour';
+      let searchQuery = 'SELECT * FROM tour WHERE';
+      //build query dynamially if there is an object fields which we have to put as where condition in the query
+      //Filtering
+      //in the documentation mention the syntax require for advance filtering like duration[>]=5
+      for (let key in queryObject) {
+        if (typeof queryObject[key] === 'object' && key !== null) {
+          for (let objKey in queryObject[key]) {
+            const value = queryObject[key][objKey];
+            searchQuery += ` ${key} ${objKey} ${value} AND`;
+          }
+        } else {
+          let value = queryObject[key];
+          searchQuery += ` ${key} = ${value} AND`;
+        }
+      }
+
+      // Remove the trailing 'AND' from the query string
+      searchQuery = searchQuery.slice(0, -4);
+      console.log(searchQuery);
+      console.log(req.query);
+
+      //sorting
+
+      if (req.query.sort) {
+        searchQuery;
+      }
       const result = await Tour.query(searchQuery);
       const rows = result.rows; // Access the rows returned by the query
       res.status(200).json({
         requestedAt: req.requestTime,
         status: 'success',
+        results: result.rowCount,
         tours: rows,
       });
     } catch (err) {
