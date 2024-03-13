@@ -6,7 +6,16 @@ exports.getTours = async (req, res, next) => {
   excludedFields.forEach((item) => delete queryObject[item]);
   if (req.params.id) {
     try {
-      const searchQuery = `SELECT * FROM tour WHERE id = ${req.params.id * 1}`;
+      //Field limiting
+      if (req.query.fields) {
+        const fields = req.query.fields;
+        console.log(fields);
+        var searchQuery = `SELECT ${fields} FROM tour WHERE id = ${req.params.id * 1}`;
+        console.log(searchQuery);
+      } else {
+        var searchQuery = `SELECT * FROM tour WHERE id = ${req.params.id * 1}`;
+        console.log(searchQuery);
+      }
       const result = await Tour.query(searchQuery);
       if (result.rows.length < 1) {
         res.status(400).json({
@@ -26,12 +35,20 @@ exports.getTours = async (req, res, next) => {
       res.status(400).json({
         requestedAt: req.requestTime,
         status: 'fail',
-        message: err,
+        message: `${err}`,
       });
     }
   } else {
     try {
-      let searchQuery = 'SELECT * FROM tour WHERE';
+      if (req.query.fields) {
+        const fields = req.query.fields;
+        console.log(fields);
+        var searchQuery = `SELECT ${fields} FROM tour WHERE`;
+        console.log(searchQuery);
+      } else {
+        var searchQuery = 'SELECT * FROM tour WHERE';
+        console.log(searchQuery);
+      }
       //build query dynamially if there is an object fields which we have to put as where condition in the query
       //Filtering
       //in the documentation mention the syntax require for advance filtering like duration[>]=5
@@ -55,8 +72,48 @@ exports.getTours = async (req, res, next) => {
       //sorting
 
       if (req.query.sort) {
-        searchQuery;
+        let count = 0;
+        let sortPara = req.query.sort.split(',');
+        for (let i = 0; i < sortPara.length; i++) {
+          count++;
+          if (sortPara[i].endsWith(`${'desc' || 'asc'}`)) {
+            if (count == 1) {
+              searchQuery += ` ORDER BY ${sortPara[i].replace('|', ' ')}`;
+              console.log(searchQuery);
+            } else {
+              searchQuery += `, ${sortPara[i].replace('|', ' ')}`;
+              console.log(searchQuery);
+            }
+          } else {
+            if (count == 1) {
+              searchQuery += ` ORDER BY ${sortPara[i]}`;
+              console.log(searchQuery);
+            } else {
+              searchQuery += `, ${sortPara[i]}`;
+              console.log(searchQuery);
+            }
+          }
+        }
+      } else {
+        searchQuery += ` ORDER BY createdat desc`;
+        console.log(searchQuery);
       }
+
+      //pagination
+      const page = req.query.page * 1 || 1;
+      const limit = req.query.limit * 1 || 100;
+      const skip = (page - 1) * limit;
+      if (req.query.page) {
+        const countQuery = await Tour.query(`select * FROM tour`);
+        console.log(`nikunj ${countQuery.rowCount}`);
+        if (req.query.page * limit > countQuery.rowCount) {
+          throw new Error('This page does not exist');
+        }
+      }
+      if (req.query.page && req.query.limit) {
+        searchQuery += ` OFFSET ${skip} LIMIT ${limit}`;
+      }
+
       const result = await Tour.query(searchQuery);
       const rows = result.rows; // Access the rows returned by the query
       res.status(200).json({
@@ -69,7 +126,7 @@ exports.getTours = async (req, res, next) => {
       res.status(400).json({
         requestedAt: req.requestTime,
         status: 'fail',
-        message: err,
+        message: `${err}`,
       });
     }
   }
