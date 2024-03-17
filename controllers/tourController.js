@@ -1,3 +1,4 @@
+const { Query } = require('pg');
 const { Tour } = require('../models/tourModel');
 
 exports.aliasTopTours = (req, res, next) => {
