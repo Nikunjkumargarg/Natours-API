@@ -1,5 +1,12 @@
 const { Tour } = require('../models/tourModel');
 
+exports.aliasTopTours = (req, res, next) => {
+  req.query.limit = '5';
+  req.query.sort = 'ratingsAverage|desc,price';
+  req.query.fields = 'name,price,ratingsAverage,summary,difficulty';
+  next();
+};
+
 exports.getTours = async (req, res, next) => {
   const queryObject = { ...req.query };
   const excludedFields = ['page', 'sort', 'limit', 'fields'];
@@ -106,12 +113,19 @@ exports.getTours = async (req, res, next) => {
       if (req.query.page) {
         const countQuery = await Tour.query(`select * FROM tour`);
         console.log(`nikunj ${countQuery.rowCount}`);
+        console.log(searchQuery);
         if (req.query.page * limit > countQuery.rowCount) {
           throw new Error('This page does not exist');
         }
       }
       if (req.query.page && req.query.limit) {
         searchQuery += ` OFFSET ${skip} LIMIT ${limit}`;
+        console.log(searchQuery);
+      }
+
+      if (req.query.limit) {
+        searchQuery += ` LIMIT ${limit}`;
+        console.log(searchQuery);
       }
 
       const result = await Tour.query(searchQuery);
@@ -260,6 +274,24 @@ exports.deleteTour = async (req, res, next) => {
       requestedAt: req.requestTime,
       status: 'fail',
       message: 'Could not delete tour',
+    });
+  }
+};
+
+exports.getTourStats = async (req, res, next) => {
+  try {
+    console.log('hello');
+    const query = `SELECT difficulty, AVG(price) AS Average_Price, AVG(ratingsaverage) AS Average_Rating, MIN(price) AS Minimum_Price, MAX(price) AS Maximum_Price, SUM(ratingsQuantity) AS Total_Rating, COUNT(*) AS Total_Tour from tour where ratingsaverage >= 4.5 GROUP BY difficulty ORDER BY Average_Price ASC`;
+
+    const data = await Tour.query(query);
+    res.status(200).json({
+      status: 'success',
+      data: data.rows,
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: `${err}`,
     });
   }
 };
