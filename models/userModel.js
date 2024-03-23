@@ -19,7 +19,6 @@ User.connect()
       email VARCHAR UNIQUE NOT NULL,
       photo VARCHAR,
       password VARCHAR NOT NULL CHECK (LENGTH(password) >= 8),
-      password_confirm VARCHAR NOT NULL,
       CONSTRAINT name_no_whitespace CHECK (name = TRIM(name)),
       CONSTRAINT check_lowercase_name CHECK (name = LOWER(name)),
       CONSTRAINT valid_email CHECK (email ~* '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$') 
