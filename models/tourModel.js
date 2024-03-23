@@ -1,6 +1,6 @@
 const { Client } = require('pg');
 
-const Tour = new Client({
+Tour = new Client({
   user: process.env.DATABASE_USER,
   host: process.env.DATABASE_HOST,
   database: process.env.DATABASE_NAME,
@@ -40,7 +40,7 @@ Tour.connect()
     return Tour.query(createTableQuery);
   })
   .then((res) => {
-    console.log('Table created successfully');
+    console.log('Table created successfully tour');
   })
   .catch((err) => {
     console.error(

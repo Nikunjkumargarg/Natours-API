@@ -4,7 +4,7 @@ const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const appError = require('./utils/appError');
 const app = express();
-const globalErrorHanglder = require('./controllers/errorController');
+const globalErrorHandler = require('./controllers/errorController');
 
 app.use(express.json());
 console.log(process.env.NODE_ENV);
@@ -43,6 +43,6 @@ app.all('*', (req, res, next) => {
 });
 
 //middleware function with four parameters is considered as error handling middleware by express
-app.use(globalErrorHanglder);
+app.use(globalErrorHandler);
 
 module.exports = app;
